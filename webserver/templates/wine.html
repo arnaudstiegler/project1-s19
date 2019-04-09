@@ -20,6 +20,7 @@
     <div>{{taster}}</div>
     <div>{{ reviews[loop.index0] }}</div>
     <div>{{ ratings[loop.index0] }}</div>
+    <p><a href="/review?wine_title={{wine_title}}&taster={{taster}}">Go to the other page</a></p>
     {% endfor %}
   </div>
 </body>

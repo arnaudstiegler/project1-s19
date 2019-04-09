@@ -197,7 +197,7 @@ def wine(name):
     reviews = []
     ratings = []
     #Querying the reviews for this wine
-    cursor3 = g.conn.execute("SELECT taster_name, description, rating FROM reviewed WHERE wine_title = %s",wine_title)
+    cursor3 = g.conn.execute("SELECT taster_name, description, rating FROM reviewed WHERE wine_title = %s;",wine_title)
     for result in cursor3:
         tasters.append(result['taster_name'])
         reviews.append(result['description'])
@@ -215,6 +215,25 @@ def wine(name):
     context['reviews'] = reviews
     context['ratings'] = ratings
     return render_template("wine.html", **context)
+
+
+@app.route('/review',methods = ['GET'])
+def review():
+    wine_title = request.args.get('wine_title')
+    taster =  request.args.get('taster')
+    #Querying the reviews for this wine
+    cursor = g.conn.execute("SELECT description, rating FROM reviewed WHERE wine_title = %s AND taster_name = %s;",(wine_title,taster))
+    for result in cursor:
+        description = result['description']
+        rating = result['rating']
+    cursor.close()
+    context = dict()
+    context['description'] = description
+    context['rating'] = "%.1f" % rating
+    context['taster'] = taster
+    context['wine_title'] = wine_title
+    print context
+    return render_template("review.html", **context)
 
 @app.route('/search')
 def search():

@@ -1,15 +1,28 @@
 <html>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <style>
     body{
       font-size: 15pt;
       font-family: arial;
     }
   </style>
-
-
 <body>
+  <script type="text/javascript">
+    setTimeout(function() {
+        $('#successMessage').fadeOut('fast');
+    }, 3000);
+  </script>
   <h1>Dashboard</h1>
-
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <ul id="successMessage" class=flashes>
+      {% for message in messages %}
+        <div >{{ message }}</div>
+      {% endfor %}
+      </ul>
+    {% endif %}
+  {% endwith %}
+  {% block body %}{% endblock %}
 
   <h1>{% if session_user_name %}
                     <p>Hello <b>{{ session_user_name }}</b></p>

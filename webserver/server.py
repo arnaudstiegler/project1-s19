@@ -18,7 +18,7 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
-from flask import Flask, request, render_template, g, redirect, Response, session, url_for, escape
+from flask import Flask, request, render_template, g, redirect, Response, session, url_for, escape, flash
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
 app = Flask(__name__, template_folder=tmpl_dir)
@@ -119,6 +119,7 @@ def login():
             for row in cursor.fetchall():
                 if password_form == row[0]:
                     session['username'] = request.form['username']
+                    flash('You were successfully logged in')
                     return redirect(url_for('dashboard'))
                 else:
                     error = "Invalid Credential"

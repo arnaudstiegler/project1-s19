@@ -12,16 +12,18 @@
   <div>This wine is listed at: ${{price}}</div>
   <div>It is made from the {{variety}} variety</div>
   <div>It is being made by: {{winery_name}}</div>
-  <div>Its average grade among the users is {{grade}} out of 5.00</div>
+  <div>Its average grade among the users is {{grade}} out of 5.0</div>
 
 
   <div>
     {% for taster in tasters %}
-    <div>{{taster}}</div>
-    <div>{{ reviews[loop.index0] }}</div>
-    <div>{{ ratings[loop.index0] }}</div>
-    <p><a href="/review?wine_title={{wine_title}}&taster={{taster}}">Go to the other page</a></p>
+    <p>
+    <div>Review by {{taster}}, rated at {{ratings[loop.index0]}} out of 5: <a href="/review?wine_title={{wine_title}}&taster={{taster}}">See review</a> </div>
+    </p>
     {% endfor %}
+    {% if tasters|length ==0 %}
+    <p>This wine has not been reviewed by any taster yet. Sorry!</p>
+{% endif %}
   </div>
 </body>
 

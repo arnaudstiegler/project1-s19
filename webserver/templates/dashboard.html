@@ -11,7 +11,10 @@
   <h1>Dashboard</h1>
 
 
-  <h1>Some famous Computer Scientists</h1>
+  <h1>{% if session_user_name %}
+                    <p>Hello <b>{{ session_user_name }}</b></p>
+                {% endif %}
+                <a href="{{ url_for('logout') }}">Logout</a></h1>
 
 
   <div>

@@ -121,7 +121,7 @@ def dashboard():
   #
   # example of a database query
   #
-  cursor = g.conn.execute("SELECT wine_title FROM wine ORDER BY wine_title ASC;")
+  cursor = g.conn.execute("SELECT wine_title FROM graded ORDER BY rating DESC LIMIT 5;")
   wine_titles = []
   for result in cursor:
     wine_titles.append(result['wine_title'])  # can also be accessed using result[0]
@@ -173,6 +173,24 @@ def dashboard():
 @app.route('/another')
 def another():
   return render_template("anotherfile.html")
+
+@app.route('/wine/<name>')
+def wine(name):
+    cursor = g.conn.execute("SELECT wine_title,price,variety,winery_name,username FROM wine WHERE wine_title LIKE %s",('%' + str(name)+'%'))
+    for result in cursor:
+        wine_title = result['wine_title']
+        price = result['price']
+        variety = result['variety']
+        winery_name = result['winery_name']
+        username = result['username']
+    cursor.close()
+    context = dict()
+    context['wine_title'] = wine_title
+    context['price'] = price
+    context['variety'] = variety
+    context['winery_name'] = winery_name
+    context['username'] = username
+    return render_template("wine.html", **context)
 
 @app.route('/search')
 def search():

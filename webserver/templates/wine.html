@@ -8,15 +8,20 @@
 
 
 <body>
-  <h1>Some famous Computer Scientists</h1>
-  <div>{{wine_title}}</div>
-  <div>{{price}}</div>
-  <div>{{variety}}</div>
-  <div>{{winery_name}}</div>
-  <div>{{username}}</div>
+  <h1>{{wine_title}}</h1>
+  <div>This wine is listed at: ${{price}}</div>
+  <div>It is made from the {{variety}} variety</div>
+  <div>It is being made by: {{winery_name}}</div>
+  <div>Its average grade among the users is {{grade}} out of 5.00</div>
 
 
-
+  <div>
+    {% for taster in tasters %}
+    <div>{{taster}}</div>
+    <div>{{ reviews[loop.index0] }}</div>
+    <div>{{ ratings[loop.index0] }}</div>
+    {% endfor %}
+  </div>
 </body>
 
 

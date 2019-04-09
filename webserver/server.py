@@ -176,20 +176,44 @@ def another():
 
 @app.route('/wine/<name>')
 def wine(name):
-    cursor = g.conn.execute("SELECT wine_title,price,variety,winery_name,username FROM wine WHERE wine_title LIKE %s",('%' + str(name)+'%'))
-    for result in cursor:
+
+    #Querying the full information from the wine
+    cursor1 = g.conn.execute("SELECT wine_title,price,variety,winery_name,username FROM wine WHERE wine_title LIKE %s",('%' + name.encode('utf-8') +'%'))
+    for result in cursor1:
         wine_title = result['wine_title']
         price = result['price']
         variety = result['variety']
         winery_name = result['winery_name']
         username = result['username']
-    cursor.close()
+    cursor1.close()
+
+    #Querying the grade for this wine
+    cursor2 = g.conn.execute("SELECT AVG(rating) AS grade FROM graded WHERE wine_title = %s",wine_title)
+    for result in cursor2:
+        grade = result['grade']
+    cursor2.close()
+
+    tasters = []
+    reviews = []
+    ratings = []
+    #Querying the reviews for this wine
+    cursor3 = g.conn.execute("SELECT taster_name, description, rating FROM reviewed WHERE wine_title = %s",wine_title)
+    for result in cursor3:
+        tasters.append(result['taster_name'])
+        reviews.append(result['description'])
+        ratings.append(result['rating'])
+    cursor3.close()
+
     context = dict()
     context['wine_title'] = wine_title
     context['price'] = price
     context['variety'] = variety
     context['winery_name'] = winery_name
     context['username'] = username
+    context['grade'] = "%.1f" % grade
+    context['tasters'] = tasters
+    context['reviews'] = reviews
+    context['ratings'] = ratings
     return render_template("wine.html", **context)
 
 @app.route('/search')

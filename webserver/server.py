@@ -103,7 +103,7 @@ def teardown_request(exception):
 # see for decorators: http://simeonfranklin.com/blog/2012/jul/1/python-decorators-in-12-steps/
 #
 @app.route('/')
-def index():
+def dashboard():
   """
   request is a special object that Flask provides to access web request information:
 
@@ -121,10 +121,10 @@ def index():
   #
   # example of a database query
   #
-  cursor = g.conn.execute("SELECT name FROM test")
-  names = []
+  cursor = g.conn.execute("SELECT wine_title FROM wine ORDER BY wine_title ASC;")
+  wine_titles = []
   for result in cursor:
-    names.append(result['name'])  # can also be accessed using result[0]
+    wine_titles.append(result['wine_title'])  # can also be accessed using result[0]
   cursor.close()
 
   #
@@ -153,14 +153,14 @@ def index():
   #     <div>{{n}}</div>
   #     {% endfor %}
   #
-  context = dict(data = names)
+  context = dict(data = wine_titles)
 
 
   #
   # render_template looks in the templates/ folder for files.
   # for example, the below file reads template/index.html
   #
-  return render_template("index.html", **context)
+  return render_template("dashboard.html", **context)
 
 #
 # This is an example of a different path.  You can see it at
@@ -173,6 +173,10 @@ def index():
 @app.route('/another')
 def another():
   return render_template("anotherfile.html")
+
+@app.route('/search')
+def search():
+  return render_template("search.html")
 
 
 # Example of adding new data to the database

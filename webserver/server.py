@@ -350,13 +350,13 @@ def update_grade():
 @app.route('/search_country',methods=['GET'])
 def search_country():
     print request.form
-    country = request.args.get('country')
+    country_name = request.args.get('country')
     wine_title = []
     price = []
     variety = []
     winery_name = []
     country = []
-    cursor1 = g.conn.execute("SELECT * FROM wine,winery WHERE wine.winery_name=winery.winery_name AND winery.country LIKE  %s;",'%'+country+'%')
+    cursor1 = g.conn.execute("SELECT * FROM wine,winery WHERE wine.winery_name=winery.winery_name AND winery.country LIKE  %s;",'%'+country_name+'%')
     for result in cursor1:
         wine_title.append(result['wine_title'])
         price.append(result['price'])
@@ -392,7 +392,7 @@ def search_name():
     winery_name = []
     country = []
 
-    cursor1 = g.conn.execute("SELECT * FROM wine WHERE wine_title LIKE  %s;",'%'+wine+'%')
+    cursor1 = g.conn.execute("SELECT * FROM wine,winery WHERE wine.winery_name=winery.winery_name AND wine_title LIKE  %s;",'%'+wine+'%')
     for result in cursor1:
         wine_title.append(result['wine_title'])
         price.append(result['price'])
@@ -427,7 +427,7 @@ def search_variety():
     variety = []
     winery_name = []
     country = []
-    cursor1 = g.conn.execute("SELECT * FROM wine WHERE variety LIKE  %s;",'%'+vari+'%')
+    cursor1 = g.conn.execute("SELECT * FROM wine,winery WHERE wine.winery_name=winery.winery_name AND variety LIKE  %s;",'%'+vari+'%')
     for result in cursor1:
         wine_title.append(result['wine_title'])
         price.append(result['price'])
@@ -471,7 +471,7 @@ def search_price():
             variety = []
             winery_name = []
             country = []
-            cursor1 = g.conn.execute("SELECT * FROM wine WHERE price between  %s AND %s;",(min_price,max_price))
+            cursor1 = g.conn.execute("SELECT * FROM wine,winery WHERE wine.winery_name=winery.winery_name AND price between  %s AND %s;",(min_price,max_price))
             for result in cursor1:
                 wine_title.append(result['wine_title'])
                 price.append(result['price'])

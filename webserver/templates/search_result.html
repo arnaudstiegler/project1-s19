@@ -20,6 +20,13 @@ This is what we found:
   {% endif %}
 </div>
 
+<div>
+  <h3>Click on the links if you want to find out more about those wines: </h3>
+  {% for n in wine_title %}
+  <div><a href="/wine?wine_title={{n}}">{{n}}</a></div>
+  {% endfor %}
+</div>
+
 </body>
 
 

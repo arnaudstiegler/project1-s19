@@ -8,13 +8,18 @@
 
 
 <body>
-  {% if wine_tables %}
-        {% for table in wine_tables %}
+This is what we found:
+
+<div>
+  {% if search_tables %}
+        {% for table in search_tables %}
             {{ table|safe }}
             {% endfor %}
     {% else %}
-    <h3>You have no wine in your wine list! </h3>
+    <h3>We have found no result! </h3>
   {% endif %}
+</div>
+
 </body>
 
 

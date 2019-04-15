@@ -18,6 +18,7 @@ Read about it online.
 import os
 from sqlalchemy import *
 from sqlalchemy.pool import NullPool
+import pandas as pd
 from flask import Flask, request, render_template, g, redirect, Response, session, url_for, escape, flash
 
 tmpl_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'templates')
@@ -174,6 +175,9 @@ def another():
 def wine():
     print request.args
     name = request.args.get('wine_title')
+
+    session['wine_title'] = name
+
     #Querying the full information from the wine
     cursor1 = g.conn.execute("SELECT wine_title,price,variety,winery_name,username FROM wine WHERE wine_title LIKE %s",('%' + name.encode('utf-8') +'%'))
     for result in cursor1:
@@ -208,9 +212,21 @@ def wine():
             is_in_winelist  = True
     cursor4.close()
 
+    has_been_graded = False
+    cursor5 = g.conn.execute("SELECT rating FROM graded WHERE wine_title = %s AND username = %s;",(name,session['username']))
+    grade = 0
+    for result in cursor5:
+        print(result)
+        if(result['rating'] is not None):
+            has_been_graded  = True
+            grade = result['rating']
+    cursor5.close()
+
     context = dict()
     context['count'] = is_in_winelist
-    print(context)
+    context['graded'] = has_been_graded
+    print(grade)
+    context['user_rating'] = grade
     context['wine_title'] = wine_title
     context['price'] = price
     context['variety'] = variety
@@ -220,6 +236,7 @@ def wine():
     context['tasters'] = tasters
     context['reviews'] = reviews
     context['ratings'] = ratings
+    print(context)
     return render_template("wine.html", **context)
 
 
@@ -247,20 +264,32 @@ def transaction():
     print session
 
     test = []
-    cursor3 = g.conn.execute("SELECT * FROM buys WHERE username = %s;",session['username'])
+    cursor3 = g.conn.execute("SELECT * FROM buys WHERE username = %s ORDER BY transaction_date DESC;",session['username'])
     print cursor3
     wine_title = []
     supplier_name = []
     quantity = []
+    dates = []
     for result in cursor3:
         wine_title.append(result['wine_title'])
         supplier_name.append(result['supplier_name'])
         quantity.append(result['quantity'])
+        dates.append(result['transaction_date'].date())
     cursor3.close()
     context = dict()
     context['wine_title'] = wine_title
     context['supplier_name'] = supplier_name
     context['quantity'] = quantity
+    context['transaction_date'] = dates
+
+    df = pd.DataFrame()
+    df['wine_title'] = wine_title
+    df['supplier_name'] = supplier_name
+    df['quantity'] = quantity
+    df['transaction_date'] = dates
+
+    context['transaction_tables'] = [df.to_html(classes='table', header="true", index=False, escape=False)]
+    print context
     return render_template("transaction.html", **context)
 
 @app.route('/winelist',methods = ['GET'])
@@ -269,29 +298,214 @@ def winelist():
     print session
 
     test = []
-    cursor3 = g.conn.execute("SELECT * FROM winelist, app_user WHERE username = %s AND app_user.list_id = winelist.list_id;",session['username'])
+    cursor3 = g.conn.execute("SELECT wine.wine_title,wine.price,wine.variety,wine.winery_name FROM wine,winelist, app_user WHERE app_user.username = %s AND winelist.wine_title = wine.wine_title AND app_user.list_id = winelist.list_id;",session['username'])
     print cursor3
     wine_title = []
+    price = []
+    variety = []
+    winery_name = []
 
     for result in cursor3:
         wine_title.append(result['wine_title'])
+        price.append(result['price'])
+        variety.append(result['variety'])
+        winery_name.append(result['winery_name'])
 
     cursor3.close()
     context = dict()
     context['wine_title'] = wine_title
 
+    df = pd.DataFrame()
+    df['wine_title'] = wine_title
+    df['price'] = price
+    df['variety'] = variety
+    df['winery_name'] = winery_name
+
+    context['wine_tables'] = [df.to_html(classes='table', header="true", index=False, escape=False)]
+
     return render_template("winelist.html", **context)
 
-@app.route('/search')
+@app.route('/search',methods=['GET'])
 def search():
-  return render_template("search.html")
+    print request.args
+    successfull = request.args.get('successfull')
+    context = dict()
+    context['successfull'] = successfull
+    return render_template("search.html",**context)
+
+@app.route('/grade',methods=['GET'])
+def grade():
+    wine_title = session['wine_title']
+    grade = request.args.get('grade')
+    cursor1 = g.conn.execute("INSERT INTO graded(rating,wine_title,username) VALUES (%s,%s,%s);",(grade,wine_title,session['username']))
+    return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
+
+@app.route('/update_grade',methods=['GET'])
+def update_grade():
+    wine_title = session['wine_title']
+    grade = request.args.get('grade')
+    cursor1 = g.conn.execute("UPDATE graded SET rating = %s WHERE wine_title=%s and username = %s;",(grade,wine_title,session['username']))
+    return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
+
+@app.route('/search_country',methods=['GET'])
+def search_country():
+    print request.form
+    country = request.args.get('country')
+    wine_title = []
+    price = []
+    variety = []
+    winery_name = []
+    country = []
+    cursor1 = g.conn.execute("SELECT * FROM wine,winery WHERE wine.winery_name=winery.winery_name AND winery.country LIKE  %s;",'%'+country+'%')
+    for result in cursor1:
+        wine_title.append(result['wine_title'])
+        price.append(result['price'])
+        variety.append(result['variety'])
+        winery_name.append(result['winery_name'])
+        country.append(result['country'])
+    context = dict()
+    context['wine_title'] = wine_title
+    context['price'] = price
+    context['variety'] = variety
+    context['winery_name'] = winery_name
+
+    df = pd.DataFrame()
+    df['wine_title'] = wine_title
+    df['price'] = price
+    df['variety'] = variety
+    df['winery_name'] = winery_name
+    df['country'] = country
+
+    context['search_tables'] = [df.to_html(classes='table', header="true", index=False, escape=False)]
+
+    if(len(wine_title)>0):
+        return render_template("search_result.html",**context)
+    else:
+        return redirect('/search?successfull=False')
+
+@app.route('/search_name',methods=['GET'])
+def search_name():
+    wine = request.args.get('wine_title')
+    wine_title = []
+    price = []
+    variety = []
+    winery_name = []
+    country = []
+
+    cursor1 = g.conn.execute("SELECT * FROM wine WHERE wine_title LIKE  %s;",'%'+wine+'%')
+    for result in cursor1:
+        wine_title.append(result['wine_title'])
+        price.append(result['price'])
+        variety.append(result['variety'])
+        winery_name.append(result['winery_name'])
+        country.append(result['country'])
+
+    context = dict()
+    context['wine_title'] = wine_title
+    context['price'] = price
+    context['variety'] = variety
+    context['winery_name'] = winery_name
+
+    df = pd.DataFrame()
+    df['wine_title'] = wine_title
+    df['price'] = price
+    df['variety'] = variety
+    df['winery_name'] = winery_name
+    df['country'] = country
+    context['search_tables'] = [df.to_html(classes='table', header="true", index=False, escape=False)]
+
+    if(len(wine_title)>0):
+        return render_template("search_result.html",**context)
+    else:
+        return redirect('/search?successfull=False')
+
+@app.route('/search_variety',methods=['GET'])
+def search_variety():
+    vari = request.args.get('variety')
+    wine_title = []
+    price = []
+    variety = []
+    winery_name = []
+    country = []
+    cursor1 = g.conn.execute("SELECT * FROM wine WHERE variety LIKE  %s;",'%'+vari+'%')
+    for result in cursor1:
+        wine_title.append(result['wine_title'])
+        price.append(result['price'])
+        variety.append(result['variety'])
+        winery_name.append(result['winery_name'])
+        country.append(result['country'])
+
+    context = dict()
+    context['wine_title'] = wine_title
+    context['price'] = price
+    context['variety'] = variety
+    context['winery_name'] = winery_name
+
+    df = pd.DataFrame()
+    df['wine_title'] = wine_title
+    df['price'] = price
+    df['variety'] = variety
+    df['winery_name'] = winery_name
+    df['country'] = country
+    context['search_tables'] = [df.to_html(classes='table', header="true", index=False, escape=False)]
+    print context
+    if(len(wine_title)>0):
+        return render_template("search_result.html",**context)
+    else:
+        return redirect('/search?successfull=False')
+
+
+@app.route("/search_price", methods=["POST"])
+def search_price():
+    min_price = request.form['min_price']
+    max_price = request.form['max_price']
+
+    try:
+        min_price = int(min_price)
+        max_price = int(max_price)
+        if(min_price > max_price):
+            return render_template('/sql_error.html')
+        else:
+            wine_title = []
+            price = []
+            variety = []
+            winery_name = []
+            country = []
+            cursor1 = g.conn.execute("SELECT * FROM wine WHERE price between  %s AND %s;",(min_price,max_price))
+            for result in cursor1:
+                wine_title.append(result['wine_title'])
+                price.append(result['price'])
+                variety.append(result['variety'])
+                winery_name.append(result['winery_name'])
+                country.append(result['country'])
+
+            context = dict()
+            context['wine_title'] = wine_title
+            context['price'] = price
+            context['variety'] = variety
+            context['winery_name'] = winery_name
+
+            df = pd.DataFrame()
+            df['wine_title'] = wine_title
+            df['price'] = price
+            df['variety'] = variety
+            df['winery_name'] = winery_name
+            df['country'] = country
+            context['search_tables'] = [df.to_html(classes='table', header="true", index=False, escape=False)]
+
+            if(len(wine_title)>0):
+                return render_template("search_result.html",**context)
+            else:
+                return redirect('/search?successfull=False')
+    except:
+        return render_template('/sql_error.html')
 
 
 # Example of adding new data to the database
 @app.route('/add', methods=['GET'])
 def add():
   print request.args
-  wine_title = request.args.get('wine_title')
+  wine_title = session['wine_title']
   cmd = 'INSERT INTO winelist(list_id,wine_title) VALUES';
 
   cursor1 = g.conn.execute("SELECT list_id FROM app_user WHERE username = %s;",session['username'])
@@ -303,7 +517,7 @@ def add():
 @app.route('/remove', methods=['GET'])
 def remove():
   print request.args
-  wine_title = request.args.get('wine_title')
+  wine_title = session['wine_title']
 
   cursor1 = g.conn.execute("SELECT list_id FROM app_user WHERE username = %s;",session['username'])
   for result in cursor1:
@@ -311,6 +525,20 @@ def remove():
   g.conn.execute('DELETE FROM winelist WHERE list_id=%s AND wine_title=%s;',(list_id,wine_title));
   return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
 
+# Example of adding new data to the database
+@app.route('/buy', methods=['POST'])
+def buy():
+  print request.form
+  print session
+  #print request.form
+  wine_title =  session['wine_title'].encode('utf8')
+  print wine_title
+  quantity = request.form.get('quantity')
+  try:
+    g.conn.execute('INSERT INTO buys(wine_title,supplier_name,username,quantity) VALUES (%s,%s,%s,%s)',(wine_title.decode("utf-8"),'Supplier1',session['username'],quantity));
+    return redirect('/transaction')
+  except:
+    return render_template('/sql_error.html')
 
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'
 

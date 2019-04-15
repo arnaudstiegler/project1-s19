@@ -10,6 +10,27 @@
 <body>
 This is the search page.
 
+{% if not successfull %}
+    <p>Sorry, we did not find anything...</p>
+{% endif %}
+
+
+<form method="GET" action="/search_country">
+  <p>Search by Country<input type="text" value="{{country}}" name="country"></p>
+  </form>
+
+  <form method="GET" action="/search_name">
+    <p>Search by Name<input type="text" value="{{wine_title}}" name="wine_title"></p>
+    </form>
+
+    <form method="GET" action="/search_variety">
+      <p>Search by Variety<input type="text" value="{{variety}}" name="variety"></p>
+      </form>
+
+      <form method="POST" action="/search_price">
+        <p>Minimum price<input type="text" value="{{min_price}}" name="min_price">  Maximal price<input type="text" value="{{max_price}}" name="max_price"></p><input type="submit" value="submit" />
+        </form>
+
 </body>
 
 

@@ -8,6 +8,10 @@
 
 
 <body>
+  {% if error %}
+      <p class=error><strong>Error:</strong> {{ error }}
+  {% endif %}
+
   <h1>{{wine_title}}</h1>
   <div>This wine is listed at: ${{price}}</div>
   <div>It is made from the {{variety}} variety</div>
@@ -15,20 +19,37 @@
   <div>Its average grade among the users is {{grade}} out of 5.0</div>
 
 
-  <h3>{% if not count %}
+  <div>{% if not count %}
 
                     <form method="GET" action="/add">
-                      <p>This wine is not in your wine list: would you like to add it?<input type="submit" value="{{wine_title}}" name="wine_title"></p>
+                      <p>This wine is not in your wine list: would you like to add it?<input type="submit" value="Add" name="Add"></p>
                       </form>
       {% else %}
       <form method="GET" action="/remove">
-        <p>This wine is in your wine list, would you like to remove it? <input type="submit" value="{{wine_title}}" name="wine_title"></p>
+        <p>This wine is in your wine list, would you like to remove it? <input type="submit" value="Remove" name="Remove"></p>
         </form>
                 {% endif %}
-</h3>
+</div>
+
+<div>{% if not graded %}
+
+                  <form method="GET" action="/grade">
+                    <p>You did not grade this wine: would you like to grade it?<input type="text" name="grade"><input type="submit" value="submit"></p>
+                    </form>
+    {% else %}
+    <form method="GET" action="/update_grade">
+      <p>You graded this wine {{user_rating}} out of 5.0. But if you have changed your mind, you can still change it: <input type="text" name="grade"><input type="submit" value="submit"></p>
+      </form>
+              {% endif %}
+</div>
+
+<h3>If you want to buy that wine, just enter the quantity below!<form method="POST" action="/buy">
+<p>Quantity: <input type="text" name="quantity"> <input type="submit" value="Buy" name="Buy"></p>
+</form></h3>
 
 
   <div>
+    <h3>Reviews for that wine:</h3>
     {% for taster in tasters %}
     <p>
     <div>Review by {{taster}}, rated at {{ratings[loop.index0]}} out of 5: <a href="/review?wine_title={{wine_title}}&taster={{taster}}">See review</a> </div>

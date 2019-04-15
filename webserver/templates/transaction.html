@@ -8,22 +8,14 @@
 
 
 <body>
-  <h1>Transaction History </h1>
-  <div>
-    {% for n in wine_title %}
-    <div>{{n}}</div>
-    {% endfor %}
-  </div>
-  <div>
-    {% for n in supplier_name %}
-    <div>{{n}}</div>
-    {% endfor %}
-  </div>
-  <div>
-    {% for n in quantity %}
-    <div>{{n}}</div>
-    {% endfor %}
-  </div>
+  <h1>Transaction History</h1>
+  {% if transaction_tables %}
+        {% for table in transaction_tables %}
+            {{ table|safe }}
+            {% endfor %}
+    {% else %}
+    <h3>You have bought nothing so far! </h3>
+  {% endif %}
 
 </body>
 

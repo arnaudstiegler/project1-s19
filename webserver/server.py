@@ -140,7 +140,7 @@ def dashboard():
   """
 
   # DEBUG: this is debugging code to see what request looks like
-  print request.args
+  print session
 
 
   #
@@ -155,6 +155,7 @@ def dashboard():
       cursor.close()
 
       context = dict(data = wine_titles)
+      print context
       return render_template("dashboard.html", **context)
   return redirect(url_for('login'))
 
@@ -169,9 +170,10 @@ def logout():
 def another():
   return render_template("anotherfile.html")
 
-@app.route('/wine/<name>')
-def wine(name):
-
+@app.route('/wine',methods = ['GET'])
+def wine():
+    print request.args
+    name = request.args.get('wine_title')
     #Querying the full information from the wine
     cursor1 = g.conn.execute("SELECT wine_title,price,variety,winery_name,username FROM wine WHERE wine_title LIKE %s",('%' + name.encode('utf-8') +'%'))
     for result in cursor1:
@@ -199,7 +201,16 @@ def wine(name):
         ratings.append(result['rating'])
     cursor3.close()
 
+    is_in_winelist = False
+    cursor4 = g.conn.execute("SELECT COUNT(*) FROM winelist,app_user WHERE wine_title = %s AND app_user.list_id = winelist.list_id AND username = %s;",(name,session['username']))
+    for result in cursor4:
+        if(result['count'] > 0):
+            is_in_winelist  = True
+    cursor4.close()
+
     context = dict()
+    context['count'] = is_in_winelist
+    print(context)
     context['wine_title'] = wine_title
     context['price'] = price
     context['variety'] = variety
@@ -230,19 +241,75 @@ def review():
     print context
     return render_template("review.html", **context)
 
+@app.route('/transaction',methods = ['GET'])
+def transaction():
+    print request.args
+    print session
+
+    test = []
+    cursor3 = g.conn.execute("SELECT * FROM buys WHERE username = %s;",session['username'])
+    print cursor3
+    wine_title = []
+    supplier_name = []
+    quantity = []
+    for result in cursor3:
+        wine_title.append(result['wine_title'])
+        supplier_name.append(result['supplier_name'])
+        quantity.append(result['quantity'])
+    cursor3.close()
+    context = dict()
+    context['wine_title'] = wine_title
+    context['supplier_name'] = supplier_name
+    context['quantity'] = quantity
+    return render_template("transaction.html", **context)
+
+@app.route('/winelist',methods = ['GET'])
+def winelist():
+    print request.args
+    print session
+
+    test = []
+    cursor3 = g.conn.execute("SELECT * FROM winelist, app_user WHERE username = %s AND app_user.list_id = winelist.list_id;",session['username'])
+    print cursor3
+    wine_title = []
+
+    for result in cursor3:
+        wine_title.append(result['wine_title'])
+
+    cursor3.close()
+    context = dict()
+    context['wine_title'] = wine_title
+
+    return render_template("winelist.html", **context)
+
 @app.route('/search')
 def search():
   return render_template("search.html")
 
 
 # Example of adding new data to the database
-@app.route('/add', methods=['POST'])
+@app.route('/add', methods=['GET'])
 def add():
-  name = request.form['name']
-  print name
-  cmd = 'INSERT INTO test(name) VALUES (:name1), (:name2)';
-  g.conn.execute(text(cmd), name1 = name, name2 = name);
-  return redirect('/')
+  print request.args
+  wine_title = request.args.get('wine_title')
+  cmd = 'INSERT INTO winelist(list_id,wine_title) VALUES';
+
+  cursor1 = g.conn.execute("SELECT list_id FROM app_user WHERE username = %s;",session['username'])
+  for result in cursor1:
+      list_id = result['list_id']
+  g.conn.execute('INSERT INTO winelist(list_id,wine_title) VALUES (%s,%s)',(list_id,wine_title));
+  return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
+
+@app.route('/remove', methods=['GET'])
+def remove():
+  print request.args
+  wine_title = request.args.get('wine_title')
+
+  cursor1 = g.conn.execute("SELECT list_id FROM app_user WHERE username = %s;",session['username'])
+  for result in cursor1:
+      list_id = result['list_id']
+  g.conn.execute('DELETE FROM winelist WHERE list_id=%s AND wine_title=%s;',(list_id,wine_title));
+  return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
 
 
 app.secret_key = 'A0Zr98j/3yX R~XHH!jmN]LWX/,?RT'

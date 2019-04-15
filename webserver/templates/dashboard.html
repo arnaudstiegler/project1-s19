@@ -31,12 +31,18 @@
 
 
   <div>
+    <h3>The most popular wines today:</h3>
     {% for n in data %}
-    <div><a href="/wine/{{n}}">{{n}}</a></div>
+    <div><a href="/wine?wine_title={{n}}">{{n}}</a></div>
     {% endfor %}
   </div>
 
+  <h3>Explore the wines</h3>
   <p><a href="/search">Search Page</a></p>
+  <h3>Access your past purchases</h3>
+  <p><a href="/transaction">Transaction history</a></p>
+  <h3>Access your wine list</h3>
+  <p><a href="/winelist">WineList</a></p>
 </body>
 
 

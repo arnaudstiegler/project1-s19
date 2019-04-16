@@ -353,20 +353,24 @@ def search():
 @app.route('/grade',methods=['GET'])
 def grade():
     wine_title = session['wine_title']
+    grade = request.args.get('grade')
+    print(grade)
+    print(int(grade))
     try:
         grade = int(grade)
         if(grade <= 5):
-            grade = request.args.get('grade')
             cursor1 = g.conn.execute("INSERT INTO graded(rating,wine_title,username) VALUES (%s,%s,%s);",(grade,wine_title,session['username']))
             return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
         else:
             return render_template('/sql_error.html',url=request.referrer)
     except:
         return render_template('/sql_error.html',url=request.referrer)
+
 @app.route('/update_grade',methods=['GET'])
 def update_grade():
     wine_title = session['wine_title']
     grade = request.args.get('grade')
+
     try:
         grade = int(grade)
         if(grade <= 5):

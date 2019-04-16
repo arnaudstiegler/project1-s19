@@ -9,11 +9,11 @@ You're logged in already!
 
 {% else %}
 
-<form action="/login" method="POST">
-<div class="login">
+<form action="/register_user" method="POST">
+<div class="Login">
 <div class="login-screen">
 <div class="app-title">
-<h1>Login</h1>
+<h1>Register</h1>
 {% if error %}
     <p class=error><strong>Error:</strong> {{ error }}
 {% endif %}
@@ -22,6 +22,12 @@ You're logged in already!
 <div class="control-group">
   <input type="text" class="login-field" value="" placeholder="username" name="username">
 <label class="login-field-icon fui-user" for="login-name"></label></div>
+<div class="control-group">
+  <input type="text" class="login-field" value="" placeholder="age" name="age">
+<label class="login-field-icon fui-user" for="login-age"></label></div>
+<div class="control-group">
+  <input type="text" class="login-field" value="" placeholder="country" name="country">
+<label class="login-field-icon fui-user" for="login-country"></label></div>
 <div class="control-group">
   <input type="password" class="login-field" value="" placeholder="password" name="password">
 <label class="login-field-icon fui-lock" for="login-pass"></label></div>
@@ -32,11 +38,5 @@ You're logged in already!
 </div>
 </form>
 
-<form action="/register" method="POST">
-  <div class="login">
-  <div class="login-screen">
-  <div class="app-title">
-<input type="submit" value="Sign in" class="btn btn-primary btn-large btn-block">
-</form>
 {% endif %}
 {% endblock %}

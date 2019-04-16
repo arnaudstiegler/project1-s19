@@ -128,6 +128,22 @@ def login():
             error = "Invalid Credential"
     return render_template('login.html', error=error)
 
+@app.route('/register' , methods=['GET','POST'])
+def register():
+    return render_template('register.html')
+
+@app.route('/register_user' , methods=['GET','POST'])
+def register_user():
+    print request.form
+    try:
+        cursor1 = g.conn.execute("INSERT INTO app_user(username,age,country,password) VALUES (%s,%s,%s,%s);",(request.form['username'] ,request.form['age'],request.form['country'], request.form['password']))
+
+        flash('User successfully registered')
+        return redirect(url_for('login'))
+    except:
+        flash('Wrong entries !')
+        return redirect(url_for('register'))
+
 @app.route('/')
 def dashboard():
   """
@@ -149,7 +165,7 @@ def dashboard():
   #
   if 'username' in session:
       username_session = escape(session['username']).capitalize()
-      cursor = g.conn.execute("SELECT wine_title FROM graded ORDER BY rating DESC LIMIT 5;")
+      cursor = g.conn.execute("SELECT wine_title FROM graded GROUP BY wine_title ORDER BY AVG(rating) DESC LIMIT 5;")
       wine_titles = []
       for result in cursor:
         wine_titles.append(result['wine_title'])  # can also be accessed using result[0]
@@ -189,9 +205,9 @@ def wine():
     cursor1.close()
 
     #Querying the grade for this wine
-    cursor2 = g.conn.execute("SELECT AVG(rating) AS grade FROM graded WHERE wine_title = %s",wine_title)
+    cursor2 = g.conn.execute("SELECT AVG(rating) AS grade FROM graded WHERE wine_title = %s;",wine_title)
     for result in cursor2:
-        grade = result['grade']
+        average_grade = result['grade']
     cursor2.close()
 
     tasters = []
@@ -232,7 +248,7 @@ def wine():
     context['variety'] = variety
     context['winery_name'] = winery_name
     context['username'] = username
-    context['grade'] = "%.1f" % grade
+    context['grade'] = "%.1f" % average_grade
     context['tasters'] = tasters
     context['reviews'] = reviews
     context['ratings'] = ratings
@@ -336,16 +352,30 @@ def search():
 @app.route('/grade',methods=['GET'])
 def grade():
     wine_title = session['wine_title']
-    grade = request.args.get('grade')
-    cursor1 = g.conn.execute("INSERT INTO graded(rating,wine_title,username) VALUES (%s,%s,%s);",(grade,wine_title,session['username']))
-    return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
-
+    try:
+        grade = int(grade)
+        if(grade <= 5):
+            grade = request.args.get('grade')
+            cursor1 = g.conn.execute("INSERT INTO graded(rating,wine_title,username) VALUES (%s,%s,%s);",(grade,wine_title,session['username']))
+            return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
+        else:
+            return render_template('/sql_error.html',url=request.referrer)
+    except:
+        return render_template('/sql_error.html',url=request.referrer)
 @app.route('/update_grade',methods=['GET'])
 def update_grade():
     wine_title = session['wine_title']
     grade = request.args.get('grade')
-    cursor1 = g.conn.execute("UPDATE graded SET rating = %s WHERE wine_title=%s and username = %s;",(grade,wine_title,session['username']))
-    return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
+    try:
+        grade = int(grade)
+        if(grade <= 5):
+            cursor1 = g.conn.execute("UPDATE graded SET rating = %s WHERE wine_title=%s and username = %s;",(grade,wine_title,session['username']))
+            return redirect('/wine?wine_title=' + wine_title.encode('utf8'))
+        else:
+            return render_template('/sql_error.html',url=request.referrer)
+    except:
+        return render_template('/sql_error.html',url=request.referrer)
+
 
 @app.route('/search_country',methods=['GET'])
 def search_country():

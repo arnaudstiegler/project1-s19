@@ -8,12 +8,18 @@
 
 
 <body>
-  
+
   <h1>{{wine_title}}</h1>
   <div>This wine is listed at: ${{price}}</div>
   <div>It is made from the {{variety}} variety</div>
   <div>It is being made by: {{winery_name}}</div>
-  <div>Its average grade among the users is {{grade}} out of 5.0</div>
+
+  <div>{% if avg_exists %}
+    Its average grade among the users is {{grade}} out of 5.0
+    {% else %}
+    Nobody has rated this wine yet!
+    {% endif %}
+  </div>
 
 
   <div>{% if not count %}

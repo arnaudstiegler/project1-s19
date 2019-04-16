@@ -205,11 +205,22 @@ def wine():
         username = result['username']
     cursor1.close()
 
+
     #Querying the grade for this wine
     cursor2 = g.conn.execute("SELECT AVG(rating) AS grade FROM graded WHERE wine_title = %s;",name)
     for result in cursor2:
         average_grade = result['grade']
+        try:
+            test = int(average_grade)
+            avg_exists = True
+        except:
+            average_grade = -1
+            avg_exists = False
     cursor2.close()
+
+    print(avg_exists)
+    print(average_grade)
+
 
     tasters = []
     reviews = []
@@ -229,20 +240,21 @@ def wine():
             is_in_winelist  = True
     cursor4.close()
 
+    print(is_in_winelist)
+
     has_been_graded = False
     cursor5 = g.conn.execute("SELECT rating FROM graded WHERE wine_title = %s AND username = %s;",(name,session['username']))
     grade = 0
     for result in cursor5:
-        print(result)
         if(result['rating'] is not None):
             has_been_graded  = True
             grade = result['rating']
     cursor5.close()
 
     context = dict()
+
     context['count'] = is_in_winelist
     context['graded'] = has_been_graded
-    print(grade)
     context['user_rating'] = grade
     context['wine_title'] = wine_title
     context['price'] = price
@@ -253,7 +265,8 @@ def wine():
     context['tasters'] = tasters
     context['reviews'] = reviews
     context['ratings'] = ratings
-    print(context)
+    context['avg_exists'] = avg_exists
+
     return render_template("wine.html", **context)
 
 

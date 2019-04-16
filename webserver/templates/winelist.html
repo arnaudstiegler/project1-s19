@@ -15,6 +15,14 @@
     {% else %}
     <h3>You have no wine in your wine list! </h3>
   {% endif %}
+
+
+  <div>
+    <h3>The wines in your wine list:</h3>
+    {% for n in wine_title %}
+    <div><a href="/wine?wine_title={{n}}">{{n}}</a></div>
+    {% endfor %}
+  </div>
 </body>
 
 

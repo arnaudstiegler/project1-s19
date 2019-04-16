@@ -7,22 +7,24 @@ outline: none;
 }
 body {
 font-family: Arial;
-background-color: #3498DB;
+background-color: #808080;
 padding: 50px;
 }
+
+
 .login {
 margin: 20px auto;
 width: 300px;
 }
 .login-screen {
-background-color: #FFF;
+background-color: #e6e6e6;
 padding: 20px;
 border-radius: 5px
 }
 
 .app-title {
 text-align: center;
-color: #777;
+color: #e6e6e6;
 }
 
 .login-form {
@@ -34,7 +36,7 @@ margin-bottom: 10px;
 
 input {
 text-align: center;
-background-color: #ECF0F1;
+background-color: #e6e6e6;
 border: 2px solid transparent;
 border-radius: 3px;
 font-size: 16px;
@@ -45,13 +47,13 @@ transition: border .5s;
 }
 
 input:focus {
-border: 2px solid #3498DB;
+border: 2px solid #e6e6e6;
 box-shadow: none;
 }
 
 .btn {
 border: 2px solid transparent;
-background: #3498DB;
+background: #e6e6e6;
 color: #ffffff;
 font-size: 16px;
 line-height: 25px;

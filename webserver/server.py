@@ -136,6 +136,7 @@ def register():
 def register_user():
     print request.form
     try:
+
         cursor1 = g.conn.execute("INSERT INTO app_user(username,age,country,password) VALUES (%s,%s,%s,%s);",(request.form['username'] ,request.form['age'],request.form['country'], request.form['password']))
 
         flash('User successfully registered')

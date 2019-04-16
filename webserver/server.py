@@ -206,7 +206,7 @@ def wine():
     cursor1.close()
 
     #Querying the grade for this wine
-    cursor2 = g.conn.execute("SELECT AVG(rating) AS grade FROM graded WHERE wine_title = %s;",wine_title)
+    cursor2 = g.conn.execute("SELECT AVG(rating) AS grade FROM graded WHERE wine_title = %s;",name)
     for result in cursor2:
         average_grade = result['grade']
     cursor2.close()
@@ -354,8 +354,7 @@ def search():
 def grade():
     wine_title = session['wine_title']
     grade = request.args.get('grade')
-    print(grade)
-    print(int(grade))
+
     try:
         grade = int(grade)
         if(grade <= 5):
